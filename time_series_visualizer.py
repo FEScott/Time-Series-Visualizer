@@ -33,20 +33,22 @@ def draw_line_plot():
 
 def draw_bar_plot():
     # Copy and modify data for monthly bar 
-    df['month'] = df.index.month
-    df['year'] = df.index.year
+    df_bar = df.copy()
+    df_bar['month'] = df_bar.index.month
+    df_bar['year'] = df_bar.index.year
+
     # Group data by year then by month and calculate the average monthly value 
     # adding column to data
-    df_bar = df.groupby(['year', 'month']).agg(average_value=('value', 'mean'))
+    df_bar = df_bar.groupby(['year', 'month']).agg(average_value=('value', 'mean'))
     # re-order data so that we have the correct format for the bar chart
     df_bar = df_bar.unstack(level='month')
 
     # Draw bar plot
     ax = df_bar.plot(kind='bar', figsize=(12,6))
-    ax.set_xlabel('Year')
+    ax.set_xlabel('Years')
     ax.set_ylabel('Average Page Views')
     ax.set_title('Average Page Views per Month')
-    ax.legend(title='Month', labels=['Jan', 'Feb', 'March', 'April', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
+    ax.legend(title='Month', labels=['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'])
     
     fig = ax.get_figure()  # Get the figure from the axes
 
@@ -62,12 +64,18 @@ def draw_box_plot():
     df_box.reset_index(inplace=True)
     df_box['year'] = [d.year for d in df_box.date]
     df_box['month'] = [d.strftime('%b') for d in df_box.date]
+    month_order = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
     # Draw box plots (using Seaborn)
-
-
-
-
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+    sns.boxplot(x='year', y='value', data=df_box, ax=ax1)
+    sns.boxplot(x='month', y='value', data=df_box, order=month_order, ax=ax2)
+    ax1.set_title('Year-wise Box Plot (Trend)')
+    ax2.set_title('Month-wise Box Plot (Seasonality)')
+    ax1.set_xlabel('Year')
+    ax2.set_xlabel('Month')
+    ax1.set_ylabel('Page Views')
+    ax2.set_ylabel('Page Views')
 
     # Save image and return fig (don't change this part)
     fig.savefig('box_plot.png')
