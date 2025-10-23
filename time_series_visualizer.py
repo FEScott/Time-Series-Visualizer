@@ -10,15 +10,13 @@ df = pd.read_csv('fcc-forum-pageviews.csv', parse_dates=True, index_col='date')
 
 # Set the index to the date column
 
-print(df.head())
+
 
 # Clean data: exclude top and bottom 2.5%
 df = df[
     (df['value'] >= df['value'].quantile(0.025)) &
     (df['value'] <= df['value'].quantile(0.975))
 ]
-
-
 
 def draw_line_plot():
     # Draw line plot
@@ -32,20 +30,25 @@ def draw_line_plot():
     fig.savefig('line_plot.png')
     return fig
 
+
 def draw_bar_plot():
     # Copy and modify data for monthly bar 
     df['month'] = df.index.month
     df['year'] = df.index.year
-    df_bar = df.groupby(['month', 'year'])['value'].mean().unstack()
+    # Group data by year then by month and calculate the average monthly value 
+    # adding column to data
+    df_bar = df.groupby(['year', 'month']).agg(average_value=('value', 'mean'))
+    # re-order data so that we have the correct format for the bar chart
+    df_bar = df_bar.unstack(level='month')
 
     # Draw bar plot
-    fig = plt.figure()
-    df_bar.plot(kind='bar')
-    plt.xlabel('Years')
-    plt.ylabel('Average Page Views')
-    plt.title('Average Page Views per month')
-    plt.legend(title='Month', labels=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'])
-    plt.show()
+    ax = df_bar.plot(kind='bar', figsize=(12,6))
+    ax.set_xlabel('Year')
+    ax.set_ylabel('Average Page Views')
+    ax.set_title('Average Page Views per Month')
+    ax.legend(title='Month', labels=['Jan', 'Feb', 'March', 'April', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
+    
+    fig = ax.get_figure()  # Get the figure from the axes
 
     # Save image and return fig (don't change this part)
     fig.savefig('bar_plot.png')
@@ -55,6 +58,7 @@ def draw_bar_plot():
 def draw_box_plot():
     # Prepare data for box plots (this part is done!)
     df_box = df.copy()
+    print(df_box.head())
     df_box.reset_index(inplace=True)
     df_box['year'] = [d.year for d in df_box.date]
     df_box['month'] = [d.strftime('%b') for d in df_box.date]
